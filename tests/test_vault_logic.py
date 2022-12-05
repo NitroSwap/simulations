@@ -4,8 +4,7 @@ from brownie import (
     interface
 )
 from config import (
-    usdc,
-    usdc_minter
+    usdc
 )
 
 from rich.console import Console
@@ -21,19 +20,6 @@ def test_first_deposit(nitroswap, alice):
     100 LP tokens as a receipt
     '''
     (margin_pool) = nitroswap
-
-    # setup
-    table = Table(show_header=True, header_style="bold magenta")
-    table.add_column("actor", style="dim", width=12)
-    table.add_column("before")
-    table.add_column("after")
-    table.add_column("diff")
-
-    tx = interface.IERC20(usdc).mint(alice, 100e6, {'from': usdc_minter})
-    assert interface.IERC20(usdc).balanceOf(alice) == 100e6
-
-    tx = interface.IERC20(usdc).approve(margin_pool, 100e6, {'from': alice})
-    assert interface.IERC20(usdc).allowance(alice, margin_pool) == 100e6
 
     # deposit
     prevBaseBalAlice = interface.IERC20(usdc).balanceOf(alice)
@@ -54,6 +40,11 @@ def test_first_deposit(nitroswap, alice):
     assert interface.IERC20(margin_pool).totalSupply() == 100e6
 
     # reporting
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("actor", style="dim", width=12)
+    table.add_column("before")
+    table.add_column("after")
+    table.add_column("diff")
     table.add_row('alice', str(prevBaseBalAlice), str(afterBaseBalAlice), str(prevBaseBalAlice - afterBaseBalAlice))
     table.add_row('margin pool', str(prevBaseBalMarginPool), str(afterBaseBalMarginPool), str(prevBaseBalMarginPool -afterBaseBalMarginPool))
     console.print('[green]CASE: deposit()[/green]')
