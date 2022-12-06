@@ -13,6 +13,7 @@ from config import (
     usdc_minter
 
 )
+from helpers.SnapshotManager import SnapshotManager
 from rich.console import Console
 
 console = Console()
@@ -56,6 +57,17 @@ def wireup(alice, margin_pool):
 
     tx = interface.IERC20(usdc).approve(margin_pool.address, 100e6, {'from': alice})
     assert interface.IERC20(usdc).allowance(alice, margin_pool.address) == 100e6
+
+@pytest.fixture(scope="module", autouse=True)
+def snapshot(alice, bob, deployer, nitroswap):
+    (margin_pool) = nitroswap
+    actors = ['lender', 'trader', 'deployer', 'margin pool']
+    addresses = [alice, bob, deployer, margin_pool.address]
+    assets = [usdc, margin_pool.address]
+    snapshot = SnapshotManager(actors, addresses, assets)
+    return snapshot
+
+
 
 ## Forces reset before each test
 @pytest.fixture(autouse=True)

@@ -1,5 +1,6 @@
 import pytest
 import brownie
+from helpers.SnapshotManager import SnapshotManager
 from brownie import (
     interface
 )
@@ -12,7 +13,7 @@ from rich.table import Table
 
 console = Console()
 
-def test_first_deposit(nitroswap, alice):
+def test_first_deposit(nitroswap, alice, snapshot):
     '''
     scenario: first deposit 
     1) usdc_minter mints 100 usdc to alice
@@ -20,6 +21,9 @@ def test_first_deposit(nitroswap, alice):
     100 LP tokens as a receipt
     '''
     (margin_pool) = nitroswap
+
+    # setup
+    before = snapshot.snap()
 
     # deposit
     prevBaseBalAlice = interface.IERC20(usdc).balanceOf(alice)
@@ -40,15 +44,11 @@ def test_first_deposit(nitroswap, alice):
     assert interface.IERC20(margin_pool).totalSupply() == 100e6
 
     # reporting
-    table = Table(show_header=True, header_style="bold magenta")
-    table.add_column("actor", style="dim", width=12)
-    table.add_column("before")
-    table.add_column("after")
-    table.add_column("diff")
-    table.add_row('alice', str(prevBaseBalAlice), str(afterBaseBalAlice), str(prevBaseBalAlice - afterBaseBalAlice))
-    table.add_row('margin pool', str(prevBaseBalMarginPool), str(afterBaseBalMarginPool), str(prevBaseBalMarginPool -afterBaseBalMarginPool))
-    console.print('[green]CASE: deposit()[/green]')
-    console.print(table)
+    after = snapshot.snap()
+
+    snapshot.publish(before, after)
+
+  
 
 
 
